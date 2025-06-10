@@ -1,13 +1,13 @@
 /**
  * @file example_peripheral_modes.h
  *
- *  @brief Header file for the nP0 peripheral modes examples.
+ *  @brief Header file for the npz peripheral modes examples.
  */
 
-#ifndef EXAMPLE_PERIPHERAL_MODES_H_
-#define EXAMPLE_PERIPHERAL_MODES_H_
+#ifndef __EXAMPLE_PERIPHERAL_MODES_H
+#define __EXAMPLE_PERIPHERAL_MODES_H
 
-#include "../../Drivers/nPZero_Driver/Inc/np0.h"
+#include "../../Drivers/npz_Driver/Inc/npz.h"
 
 #define AS6212_LSB 0.0078125
 
@@ -16,28 +16,28 @@
  *
  * The sensor in this example is a temperature sensor from AMS, AS6212.
  *
- * @param [in] np0_device_config_s Pointer to the device configuration structure.
+ * @param [in] npz_device_config_s Pointer to the device configuration structure.
  */
-void example_peripheral_modes_config_i2c_PM0(np0_device_config_s *np0_config);
+void example_peripheral_modes_config_i2c_PM0(npz_device_config_s *npz_config);
 
-#ifndef NP0_G0
+#ifndef npz_G0
 /**
  * @brief This function is an example of how a user can implement the peripheral polling mode 1 on a I2C sensor.
  *
  * The sensor in this example is a temperature sensor from AMS, AS6212.
  *
- * @param [in] np0_device_config_s Pointer to the device configuration structure.
+ * @param [in] npz_device_config_s Pointer to the device configuration structure.
  */
-void example_peripheral_modes_config_i2c_PM1(np0_device_config_s *np0_config);
+void example_peripheral_modes_config_i2c_PM1(npz_device_config_s *npz_config);
 #endif
 /**
  * @brief This function is an example of how a user can implement the peripheral polling mode 2 on a I2C sensor.
  *
  * The sensor in this example is a temperature sensor from AMS, AS6212.
  *
- * @param [in] np0_device_config_s Pointer to the device configuration structure.
+ * @param [in] npz_device_config_s Pointer to the device configuration structure.
  */
-void example_peripheral_modes_config_i2c_PM2(np0_device_config_s *np0_config);
+void example_peripheral_modes_config_i2c_PM2(npz_device_config_s *npz_config);
 
 /**
  * @brief This function is an example of how a user can implement the Peripheral Mode 3 on a I2C sensor.
@@ -46,11 +46,11 @@ void example_peripheral_modes_config_i2c_PM2(np0_device_config_s *np0_config);
  * To enable the trigger for Peripheral Mode 3, please connect the interrupt pin to GND in either the PMOD 4 I2C
  * or PMOD 2 I2C connectors on the EVB.
  *
- * @param [in] np0_device_config_s Pointer to the device configuration structure.
+ * @param [in] npz_device_config_s Pointer to the device configuration structure.
  */
-void example_peripheral_modes_config_i2c_PM3(np0_device_config_s *np0_config);
+void example_peripheral_modes_config_i2c_PM3(npz_device_config_s *npz_config);
 
-#ifndef NP0_G0
+#ifndef npz_G0
 /**
  * @brief This function is an example of how a user can implement the Peripheral Mode 0 on a SPI sensor.
  *
@@ -60,7 +60,7 @@ void example_peripheral_modes_config_i2c_PM3(np0_device_config_s *np0_config);
  * @param [in] sensor Peripheral struct which holds the value to be setTime To Wait Peripheral register that holds the
  * value to be written.
  */
-//void example_peripheral_modes_config_spi_PM0(np0_device_s device, np0_peripheral_s sensor);
+//void example_peripheral_modes_config_spi_PM0(npz_device_s device, npz_peripheral_s sensor);
 
 /**
  * @brief This function is an example of how a user can implement the Peripheral Mode 1 on a SPI sensor.
@@ -71,7 +71,7 @@ void example_peripheral_modes_config_i2c_PM3(np0_device_config_s *np0_config);
  * @param [in] sensor Peripheral struct which holds the value to be setTime To Wait Peripheral register that holds the
  * value to be written.
  */
-//void example_peripheral_modes_config_spi_PM1(np0_device_s device, np0_peripheral_s sensor);
+//void example_peripheral_modes_config_spi_PM1(npz_device_s device, npz_peripheral_s sensor);
 
 /**
  * @brief This function is an example of how a user can implement the Peripheral Mode 2 on a SPI sensor.
@@ -82,7 +82,7 @@ void example_peripheral_modes_config_i2c_PM3(np0_device_config_s *np0_config);
  * @param [in] sensor Peripheral struct which holds the value to be setTime To Wait Peripheral register that holds the
  * value to be written.
  */
-//void example_peripheral_modes_config_spi_PM2(np0_device_s device, np0_peripheral_s sensor);
+//void example_peripheral_modes_config_spi_PM2(npz_device_s device, npz_peripheral_s sensor);
 
 /**
  * @brief This function is an example of how a user can implement the Peripheral Mode 3 on a SPI sensor.
@@ -94,7 +94,7 @@ void example_peripheral_modes_config_i2c_PM3(np0_device_config_s *np0_config);
  * @param [in] sensor Peripheral struct which holds the value to be setTime To Wait Peripheral register that holds the
  * value to be written.
  */
-//void example_peripheral_modes_config_spi_PM3(np0_device_s device, np0_peripheral_s sensor);
+//void example_peripheral_modes_config_spi_PM3(npz_device_s device, npz_peripheral_s sensor);
 
 /**
  * @brief This function is an example of how a user can implement and configures SPI interrupt on an
@@ -106,7 +106,7 @@ void example_peripheral_modes_config_i2c_PM3(np0_device_config_s *np0_config);
  * @param [in] sensor Peripheral struct which holds the value to be setTime To Wait Peripheral register that holds the
  * value to be written.
  */
-//void example_peripheral_config_spi_interrupt(np0_device_s device, np0_peripheral_s sensor);
+//void example_peripheral_config_spi_interrupt(npz_device_s device, npz_peripheral_s sensor);
 
 #endif
 
@@ -114,4 +114,4 @@ void example_peripheral_modes_config_i2c_PM3(np0_device_config_s *np0_config);
  * @}
  */
 
-#endif /* EXAMPLE_PERIPHERAL_MODES_H_ */
+#endif /* __EXAMPLE_PERIPHERAL_MODES_H */

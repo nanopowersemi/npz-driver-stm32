@@ -1,13 +1,13 @@
 /**
- * @file np0_hal.c
+ * @file npz_hal.c
  *
- * @brief Source file for nPZero Hardware Abstraction Layer (HAL)
+ * @brief Source file for npz Hardware Abstraction Layer (HAL)
  *
  * This file contains the hardware-specific functions and configurations for
  * the I2C communication interface. Users are required to customize these
  * functions according to their target hardware and MCU setup.
  *
- * The functions in this file serve as an abstraction layer between the IPMIC
+ * The functions in this file serve as an abstraction layer between the 
  * driver and the hardware-specific I2C implementation on the target system.
  * Users should modify these functions to match the I2C peripheral and
  * communication protocol used in their system.
@@ -24,9 +24,9 @@
  * Includes
  *****************************************************************************/
 
-#include "../Inc/np0_hal.h"
 #include "stm32l0xx_hal.h"
 #include <stdio.h>
+#include "../Inc/npz_hal.h"
 
 /*****************************************************************************
  * Defines
@@ -51,7 +51,7 @@ static I2C_HandleTypeDef m_hi2c1;
 /**
  * @brief Function to read registers over I2C.
  */
-np0_status_e np0_hal_read(uint8_t slave_address, uint8_t slave_register, uint8_t *pData, uint16_t size, uint32_t timeout)
+npz_status_e npz_hal_read(uint8_t slave_address, uint8_t slave_register, uint8_t *pData, uint16_t size, uint32_t timeout)
 {
 	uint8_t transmitData[] = { slave_register};
 
@@ -75,7 +75,7 @@ np0_status_e np0_hal_read(uint8_t slave_address, uint8_t slave_register, uint8_t
 /**
  * @brief Function to write to registers over I2C.
  */
-np0_status_e np0_hal_write(uint8_t slave_address, uint8_t *pData, uint16_t size, uint32_t timeout)
+npz_status_e npz_hal_write(uint8_t slave_address, uint8_t *pData, uint16_t size, uint32_t timeout)
 {
 	if (HAL_I2C_Master_Transmit(&m_hi2c1, slave_address, pData, size, timeout) != HAL_OK)
 	{
@@ -86,9 +86,10 @@ np0_status_e np0_hal_write(uint8_t slave_address, uint8_t *pData, uint16_t size,
 }
 
 /**
- * @brief Function to initialize I2C instance that will communicate with nPZero.
+ * @brief Function to initialize I2C instance that will communicate with npz.
  */
-np0_status_e np0_hal_init() {
+npz_status_e npz_hal_init() 
+{
 	m_hi2c1.Instance = I2C1;
 	m_hi2c1.Init.Timing = 0x00707CBB;
 	m_hi2c1.Init.OwnAddress1 = 0;
