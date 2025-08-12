@@ -73,26 +73,26 @@ int _write(int file, char *data, int len)
 }
 
 npz_peripheral_config_s peripheral_3 = {
-	    .power_mode = POWER_MODE_PERIODIC,
-	    .communication_protocol = COM_SPI,
-	    .polling_mode = POLLING_MODE_PERIODIC_READ_COMPARE_THRESHOLD,
-	    .power_switch_mode = POWER_SWITCH_MODE_LOGIC_OUTPUT_HIGH,
-	    .interrupt_pin_mode = INTERRUPT_PIN_MODE_INPUT_ACTIVE_HIGH,
-	    .comparison_mode = COMPARISON_MODE_INSIDE_THRESHOLD,
-	    .sensor_data_type = DATA_TYPE_INT16,
-	    .multi_byte_transfer_enable = 0,
-	    .swap_registers = 0,
-	    .spi_cfg.bytes_from_sram_num = 2,
-	    .spi_cfg.bytes_from_sram = {0x20, 0x10},
-	    .spi_cfg.bytes_from_sram_read_num = 1,
-	    .spi_cfg.bytes_from_sram_read = {0xA8},
-	    .spi_cfg.mode = SPIMOD_SPI_MODE_0,
-	    .polling_period = 50,
-	    .pre_wait_time = PRE_WAIT_TIME_EXTEND_256,
-	    .post_wait_time = POST_WAIT_TIME_EXTEND_256,
-	    .time_to_wait = 156,
-	    .threshold_over = 1000,
-	    .threshold_under = 64536,
+    .power_mode = POWER_MODE_PERIODIC,
+    .communication_protocol = COM_SPI,
+    .polling_mode = POLLING_MODE_PERIODIC_READ_COMPARE_THRESHOLD,
+    .power_switch_mode = POWER_SWITCH_MODE_LOGIC_OUTPUT_HIGH,
+    .interrupt_pin_mode = INTERRUPT_PIN_MODE_INPUT_ACTIVE_HIGH,
+    .comparison_mode = COMPARISON_MODE_INSIDE_THRESHOLD,
+    .sensor_data_type = DATA_TYPE_INT16,
+    .multi_byte_transfer_enable = 0,
+    .swap_registers = 0,
+    .spi_cfg.bytes_from_sram_num = 2,
+    .spi_cfg.bytes_from_sram = {0x20, 0x10},
+    .spi_cfg.bytes_from_sram_read_num = 1,
+    .spi_cfg.bytes_from_sram_read = {0xA8},
+    .spi_cfg.mode = SPIMOD_SPI_MODE_0,
+    .polling_period = 50,
+    .pre_wait_time = PRE_WAIT_TIME_EXTEND_256,
+    .post_wait_time = POST_WAIT_TIME_EXTEND_256,
+    .time_to_wait = 156,
+    .threshold_over = 1000,
+    .threshold_under = 64536,
 };
 
 npz_peripheral_config_s peripheral_4 = {
@@ -165,36 +165,18 @@ npz_device_config_s npz_configuration = {
     .peripherals = {0, 0, &peripheral_3, &peripheral_4},
 };
 
-static npz_status_e npz_write_unlock_registers(void)
+static void read_peripheral_acc(int peripheral_value)
 {
-	uint8_t transmitData[2] = { 0 };
-	transmitData[0] = 0x6F;
-	transmitData[1] = 0x60;
-
-	return npz_hal_write(NPZ_I2C_ADDRESS, transmitData, sizeof(transmitData),
-			I2C_TRANSMISSION_TIMEOUT_MS);
-}
-
-static void read_chip_uid(void)
-{
-	   uint8_t sample_data[4];
-
-	   /* UNLOCK */
-	   npz_write_unlock_registers();
-
-	   //HAL_Delay(150);
-
-	   npz_hal_read(NPZ_I2C_ADDRESS, 0x76, &sample_data[0], sizeof(sample_data), I2C_TRANSMISSION_TIMEOUT_MS);
-
-	   printf("[--- npz GEN1 UID-%02x%02x%02x%02x ---]\r\n", sample_data[3], sample_data[2], sample_data[1], sample_data[0]);
-
+    // Cast the acceleration value to INT16 (signed), and convert it to mg
+    float acceleration_x = (float)(int16_t)peripheral_value * 2.0f * 1000.0f / 32768.0f;
+    printf("Acceleration X axis: %.2f mg\r\n", acceleration_x);
 }
 
 static void read_peripheral_temp(int peripheral_value)
 {
     // Calculate the temperature in degrees Celsius
-    float temperature = peripheral_value * 0.0078125; //     // AS6212 temperature sensor resolution is 0.0078125°C.
-    printf("Calculated temperature: %d.%03d °C\r\n", (int) temperature, (int) ((temperature - (int) temperature) * 1000));
+    float temperature = peripheral_value * 0.0078125f;  // AS6212 temperature sensor resolution is 0.0078125°C.
+    printf("Calculated temperature: %.3f °C\r\n", temperature);
 }
 
 static void npz_read_status_registers(npz_status_s *status)
@@ -268,7 +250,11 @@ static void npz_read_status_registers(npz_status_s *status)
             npz_device_read_peripheral_value(switches[i], i,
                                              &peripheral_value); // Read the peripheral value based on the switch
 
-            if (npz_configuration.peripherals[i]->communication_protocol == COM_I2C &&
+            if (npz_configuration.peripherals[i]->communication_protocol == COM_SPI && i == 2)
+            {
+                read_peripheral_acc(peripheral_value);
+            }
+            else if (npz_configuration.peripherals[i]->communication_protocol == COM_I2C &&
                 (npz_configuration.peripherals[i]->polling_mode == POLLING_MODE_PERIODIC_READ_COMPARE_THRESHOLD ||
                  npz_configuration.peripherals[i]->polling_mode ==
                      POLLING_MODE_PERIODIC_WAIT_INTERRUPT_COMPARE_THRESHOLD))
@@ -294,12 +280,12 @@ uint8_t npz_search(void)
 
     if ((sample_data) == 0x60)
     {
-    	printf("[--- nPZero GEN1 INIT OK ---]\r\n");
+    	printf("[--- nPZero Init OK ---]\r\n");
     	return 1;
     }
     else
     {
-    	printf("[--- nPZero GEN1 INIT NOK 0x%x---]\r\n", sample_data);
+    	printf("[--- nPZero Init Not OK 0x%x---]\r\n", sample_data);
     	return 0;
     }
 }
@@ -339,7 +325,7 @@ int main(void)
     MX_USART2_UART_Init();
     /* USER CODE BEGIN 2 */
     // Print welcome message
-    printf("npz Host is active.........\r\n");
+    printf("\nnPZero Host is active ......\r\n");
 
     // Initialize the npz interface
     npz_hal_init();
@@ -352,8 +338,6 @@ int main(void)
     npz_read_status_registers(&npz_status);
 
     npz_search();
-
-    read_chip_uid();
 
     // Send the configuration to the device
     npz_device_configure(&npz_configuration);

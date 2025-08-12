@@ -1078,6 +1078,13 @@ bool npz_device_read_peripheral_value(npz_psw_e psw_lp, int index, int * periphe
             printf("Reading value from I2C Peripheral %d is 0x%02X 0x%02X\r\n", psw_lp,
                 valp.valp_h, valp.valp_l);
         }
+        else // SPI communication protocol
+        {
+            *peripheral_value = (valp.valp_h << 8) | valp.valp_l;
+
+            printf("Reading value from SPI Peripheral %d is 0x%02X 0x%02X\r\n", psw_lp,
+                valp.valp_h, valp.valp_l);
+        }
     }
 
     return true;
