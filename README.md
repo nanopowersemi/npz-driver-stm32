@@ -11,21 +11,20 @@ The driver also includes a Hardware Abstraction Layer (HAL) for I2C operations, 
 This project utilizes the **nPZero Driver** to execute the following functionalities:
 
 - The Peripheral Mode examples demonstrate communication using I2C:
-    - These examples show how to communicate with the temperature sensor connected via the I2C interface, which is bundled with the nPZero Gen1 Development Kit (nPZero DK).
+    - These examples show how to communicate with the temperature sensor connected via the I2C interface, which is bundled with the nPZero Gen1 Development Kit (DevKit).
 
 - The ADC examples illustrates how to configure the internal and external ADC channels.
 
 These examples demonstrate the necessary procedures for initialization, configuration, and data exchange required for sensor interaction using the **nPZero Driver**.
 
 ## Hardware Requirements
-This project is designed to be executed on the STM32L053C8U6 processor. In order to run, flash and debug the code you will need a debugger such as the Segger J-LINK or the ST-Link,
-connected to the Debug connector (J1) on the STM32L053C8U6 MCU Host.
+This project is designed to be executed on the STM32L053C8U6 processor. In order to run, flash and debug the code you will need a debugger such as the Segger J-LINK or the ST-Link, connected to the Debug connector (J1) on the STM32L053C8U6 MCU Host.
 
-You will also need the following PCBs which are included in the nPZero Evaluation Kit(EVK):
+You will also need the following PCBs which are included in the nPZero Gen1 Development Kit (DevKit):
 
 - nPZero DevBoard
-- STM32L053C8 Host MCU (Bundled with DK)
-- Temperature sensor AMS6212 (Bundled with DK)
+- STM32L053C8 Host MCU (Bundled with DevKit)
+- Temperature sensor AMS6212 (Bundled with DevKit)
 - Segger J-LINK Debugger
 
 ## Setting Up and Developing for the STM32 MCU Host
