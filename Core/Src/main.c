@@ -87,13 +87,14 @@ npz_peripheral_config_s peripheral_3 = {
     .spi_cfg.bytes_from_sram_read_num = 1,
     .spi_cfg.bytes_from_sram_read = {0xA8},
     .spi_cfg.mode = SPIMOD_SPI_MODE_0,
-    .polling_period = 50,
+    .polling_period = 10, // Wakeup peripheral every second with 10Hz clock
     .pre_wait_time = PRE_WAIT_TIME_EXTEND_256,
     .post_wait_time = POST_WAIT_TIME_EXTEND_256,
     .time_to_wait = 156,
-    .threshold_over = 1000,
-    .threshold_under = 64536,
+    .threshold_over = 500,
+    .threshold_under = -500,
 };
+#define ACC_EPSILON 400
 
 npz_peripheral_config_s peripheral_4 = {
     .communication_protocol = COM_I2C,
@@ -105,7 +106,7 @@ npz_peripheral_config_s peripheral_4 = {
     .sensor_data_type  = DATA_TYPE_INT16,
     .multi_byte_transfer_enable  = MULTIBYTE_TRANSFER_ENABLE,
     .swap_registers = ENDIAN_BIG,
-    .polling_period = 0x012C, // Wakeup peripheral every 30 seconds with 10Hz clock
+    .polling_period = 100, // Wakeup peripheral every 10 seconds with 10Hz clock
     .i2c_cfg.sensor_address = 0x49,
     .i2c_cfg.command_num = 2,
     .i2c_cfg.bytes_from_sram = {0x01, 0x82, 0x02, 0xA0},
@@ -121,8 +122,9 @@ npz_peripheral_config_s peripheral_4 = {
     .pre_wait_time = POST_WAIT_TIME_EXTEND_4096,
     .post_wait_time = POST_WAIT_TIME_EXTEND_4096,
     .threshold_over = 3200,
-    .threshold_under = 1280,
+    .threshold_under = 3100,
 };
+#define TEMP_EPSILON 64
 
 npz_adc_config_channels_s npz_adc_internal_config = {
     .wakeup_enable = 0,
@@ -146,7 +148,7 @@ npz_device_config_s npz_configuration = {
     .system_clock_divider = SCLK_DIV_DISABLE,
     .system_clock_source = SYS_CLOCK_10HZ,
     .io_strength = IO_STR_NORMAL,
-    .i2c_pull_mode = I2C_PULL_DISABLE,
+    .i2c_pull_mode = I2C_PULL_AUTO,
     .spi_auto = SPI_PINS_ALWAYS_ON,
     .xo_clock_out_sel = XO_CLK_OFF,
     .wake_up_per1 = 0,
@@ -232,41 +234,24 @@ static void npz_read_status_registers(npz_status_s *status)
         return;
     }
 
-    // Handle status2
-    // Arrays to map peripherals and switches
-    npz_psw_e switches[4] = {PSW_LP1, PSW_LP2, PSW_LP3, PSW_LP4};
-    uint8_t triggered[4] = {status->status2.per1_triggered, status->status2.per2_triggered,
-                            status->status2.per3_triggered, status->status2.per4_triggered};
-    uint8_t timeouts[4] = {status->status2.per1_global_timeout, status->status2.per2_global_timeout,
-                           status->status2.per3_global_timeout, status->status2.per4_global_timeout};
-
-    // Iterate over each peripheral to check for triggers and timeouts
-    for (int i = 0; i < 4; i++)
+    if (status->status2.per3_triggered)
     {
-        if (triggered[i]) // Check if peripheral is triggered
-        {
-            int peripheral_value = 0;
+        int acc_value;
+        npz_device_read_peripheral_value(PSW_LP3, 2, &acc_value);
+        peripheral_3.threshold_under = (uint16_t)((int16_t)acc_value - ACC_EPSILON);
+        peripheral_3.threshold_over = (uint16_t)((int16_t)acc_value + ACC_EPSILON);
+        read_peripheral_acc(acc_value);
+        printf("Setting new accelerometer limits (low/current/high): %i/%i/%i\r\n", peripheral_3.threshold_under, (int)(int16_t)acc_value, peripheral_3.threshold_over);
+    }
 
-            npz_device_read_peripheral_value(switches[i], i,
-                                             &peripheral_value); // Read the peripheral value based on the switch
-
-            if (npz_configuration.peripherals[i]->communication_protocol == COM_SPI && i == 2)
-            {
-                read_peripheral_acc(peripheral_value);
-            }
-            else if (npz_configuration.peripherals[i]->communication_protocol == COM_I2C &&
-                (npz_configuration.peripherals[i]->polling_mode == POLLING_MODE_PERIODIC_READ_COMPARE_THRESHOLD ||
-                 npz_configuration.peripherals[i]->polling_mode ==
-                     POLLING_MODE_PERIODIC_WAIT_INTERRUPT_COMPARE_THRESHOLD))
-            {
-                read_peripheral_temp(peripheral_value);
-            }
-        }
-
-        if (timeouts[i]) // Check if global timeout is triggered for this peripheral
-        {
-            printf("Peripheral %d global timeout was triggered\r\n", i + 1); // Log the timeout event
-        }
+    if (status->status2.per4_triggered)
+    {
+        int temp_value;
+        npz_device_read_peripheral_value(PSW_LP4, 3, &temp_value);
+        peripheral_4.threshold_under = (uint16_t)((int16_t)temp_value - TEMP_EPSILON);
+        peripheral_4.threshold_over = (uint16_t)((int16_t)temp_value + TEMP_EPSILON);
+        read_peripheral_temp(temp_value);
+        printf("Setting new temperature limits (low/current/high): %i/%i/%i\r\n", peripheral_4.threshold_under, temp_value, peripheral_4.threshold_over);
     }
 }
 
@@ -325,29 +310,29 @@ int main(void)
     MX_USART2_UART_Init();
     /* USER CODE BEGIN 2 */
     // Print welcome message
-    printf("\nnPZero Host is active ......\r\n");
+    printf("\nnPZero Host Active - Dynamic Threshold Mode ...\r\n");
 
     // Initialize the npz interface
     npz_hal_init();
 
-    HAL_Delay(1000);
+    HAL_Delay(100);
 
     // Read the status registers of the npz device after every reset
     npz_status_s npz_status = { 0 };
 
     npz_read_status_registers(&npz_status);
 
-    npz_search();
+    //npz_search();
 
     // Send the configuration to the device
     npz_device_configure(&npz_configuration);
 
     // Logs and reads all configuration registers for debugging purposes
-    npz_log_configurations(&npz_configuration);
+    //npz_log_configurations(&npz_configuration);
 
     // Add a delay in main, to give the user time to flash the MCU before it enters sleep
     // This delay should be removed in production code
-    HAL_Delay(500);
+    //HAL_Delay(500);
 
     // At the end of your operations, put the device into sleep mode
     npz_device_go_to_sleep();
