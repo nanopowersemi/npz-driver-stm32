@@ -90,7 +90,7 @@ npz_peripheral_config_s peripheral_3 = {
     .polling_period = 50,
     .pre_wait_time = PRE_WAIT_TIME_EXTEND_256,
     .post_wait_time = POST_WAIT_TIME_EXTEND_256,
-    .time_to_wait = 156,
+    .time_to_wait = 10,
     .threshold_over = 1000,
     .threshold_under = 64536,
 };
@@ -118,8 +118,8 @@ npz_peripheral_config_s peripheral_4 = {
                            * When multiplied by 256: 49 * 256 = 12544  clock cycles * 2.5�s (1 / 400000),
                            * which equals 31.36ms at 400kHz.
                            */
-    .pre_wait_time = POST_WAIT_TIME_EXTEND_4096,
-    .post_wait_time = POST_WAIT_TIME_EXTEND_4096,
+    .pre_wait_time = POST_WAIT_TIME_EXTEND_256,
+    .post_wait_time = POST_WAIT_TIME_EXTEND_256,
     .threshold_over = 3200,
     .threshold_under = 1280,
 };
@@ -146,7 +146,7 @@ npz_device_config_s npz_configuration = {
     .system_clock_divider = SCLK_DIV_DISABLE,
     .system_clock_source = SYS_CLOCK_10HZ,
     .io_strength = IO_STR_NORMAL,
-    .i2c_pull_mode = I2C_PULL_DISABLE,
+    .i2c_pull_mode = I2C_PULL_AUTO,
     .spi_auto = SPI_PINS_ALWAYS_ON,
     .xo_clock_out_sel = XO_CLK_OFF,
     .wake_up_per1 = 0,
@@ -181,6 +181,7 @@ static void read_peripheral_temp(int peripheral_value)
 
 static void npz_read_status_registers(npz_status_s *status)
 {
+    // Handle status2
     // Read the first status register
     if (npz_read_STA1(&status->status1) != OK)
     {
@@ -243,8 +244,8 @@ static void npz_read_status_registers(npz_status_s *status)
     // Iterate over each peripheral to check for triggers and timeouts
     for (int i = 0; i < 4; i++)
     {
-        if (triggered[i]) // Check if peripheral is triggered
-        {
+       if (triggered[i]) // Check if peripheral is triggered
+       {
             int peripheral_value = 0;
 
             npz_device_read_peripheral_value(switches[i], i,
