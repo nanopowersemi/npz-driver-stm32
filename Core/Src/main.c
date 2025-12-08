@@ -87,10 +87,10 @@ npz_peripheral_config_s peripheral_3 = {
     .spi_cfg.bytes_from_sram_read_num = 1,
     .spi_cfg.bytes_from_sram_read = {0xA8},
     .spi_cfg.mode = SPIMOD_SPI_MODE_0,
-    .polling_period = 10, // Wakeup peripheral every second with 10Hz clock
+    .polling_period = 50,
     .pre_wait_time = PRE_WAIT_TIME_EXTEND_256,
     .post_wait_time = POST_WAIT_TIME_EXTEND_256,
-    .time_to_wait = 156,
+    .time_to_wait = 10,
     .threshold_over = 500,
     .threshold_under = -500,
 };
@@ -106,7 +106,7 @@ npz_peripheral_config_s peripheral_4 = {
     .sensor_data_type  = DATA_TYPE_INT16,
     .multi_byte_transfer_enable  = MULTIBYTE_TRANSFER_ENABLE,
     .swap_registers = ENDIAN_BIG,
-    .polling_period = 100, // Wakeup peripheral every 10 seconds with 10Hz clock
+    .polling_period = 0x012C, // Wakeup peripheral every 30 seconds with 10Hz clock
     .i2c_cfg.sensor_address = 0x49,
     .i2c_cfg.command_num = 2,
     .i2c_cfg.bytes_from_sram = {0x01, 0x82, 0x02, 0xA0},
@@ -119,8 +119,8 @@ npz_peripheral_config_s peripheral_4 = {
                            * When multiplied by 256: 49 * 256 = 12544  clock cycles * 2.5�s (1 / 400000),
                            * which equals 31.36ms at 400kHz.
                            */
-    .pre_wait_time = POST_WAIT_TIME_EXTEND_4096,
-    .post_wait_time = POST_WAIT_TIME_EXTEND_4096,
+    .pre_wait_time = POST_WAIT_TIME_EXTEND_256,
+    .post_wait_time = POST_WAIT_TIME_EXTEND_256,
     .threshold_over = 3200,
     .threshold_under = 3100,
 };
@@ -343,12 +343,12 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        /* USER CODE END WHILE */
+      /* USER CODE END WHILE */
 
-        /* USER CODE BEGIN 3 */
+      /* USER CODE BEGIN 3 */
 	    // Do nothing.
 	    HAL_Delay(1000);
-        printf("Main thread is alive...\r\n");
+      printf("Main thread is alive...\r\n");
     }
     /* USER CODE END 3 */
 }
