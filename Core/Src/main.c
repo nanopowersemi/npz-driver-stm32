@@ -58,7 +58,7 @@ UART_HandleTypeDef huart2;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_USART2_UART_Init(void);
+//static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void Configure_BOR();
 void Check_Reset_Cause();
@@ -322,32 +322,35 @@ int main(void)
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_I2C1_Init();
-    MX_USART2_UART_Init();
-    /* USER CODE BEGIN 2 */
-    // Print welcome message
-    printf("\nnPZero Host is active ......\r\n");
 
-    // Initialize the npz interface
+    // Skip UART initialization for to reduce power draw
+    //MX_USART2_UART_Init();
+
+    /* USER CODE BEGIN 2 */
+
+    // Print welcome message
+    //printf("\nnPZero Host is active ......\r\n");
+
+    // Initialize the nPZero interface
     npz_hal_init();
 
-    HAL_Delay(1000);
+    // Skip the search in order to reduce power consumption
+    //npz_search();
 
-    // Read the status registers of the npz device after every reset
-    npz_status_s npz_status = { 0 };
-
+    // Read the status registers of the nPZero device after every reset
+    npz_status_s npz_status = {0};
     npz_read_status_registers(&npz_status);
 
-    npz_search();
+    // If a global timeout or a peripheral trigger has occurred it means the nPZero is already configured, and there is no need to do it again
+    if(!(npz_status.status1.global_timeout_triggered || npz_status.status2.per1_global_timeout || npz_status.status2.per1_triggered || npz_status.status2.per2_global_timeout || npz_status.status2.per2_triggered ||
+    	 npz_status.status2.per3_global_timeout || npz_status.status2.per3_triggered || npz_status.status2.per4_global_timeout || npz_status.status2.per4_triggered))
+    {
+		// Send the configuration to the device
+		npz_device_configure(&npz_configuration);
 
-    // Send the configuration to the device
-    npz_device_configure(&npz_configuration);
-
-    // Logs and reads all configuration registers for debugging purposes
-    npz_log_configurations(&npz_configuration);
-
-    // Add a delay in main, to give the user time to flash the MCU before it enters sleep
-    // This delay should be removed in production code
-    HAL_Delay(500);
+		// Logs and reads all configuration registers for debugging purposes
+		//npz_log_configurations(&npz_configuration);
+    }
 
     // At the end of your operations, put the device into sleep mode
     npz_device_go_to_sleep();
