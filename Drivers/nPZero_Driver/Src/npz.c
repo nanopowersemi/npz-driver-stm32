@@ -1,15 +1,15 @@
 /**
  * @file npz.c
  *
- * @brief Source file for npz Driver.
+ * @brief Source file for the nPZero Driver.
  * 
- * This file contains the implementation of the  driver for controlling and managing 
- * the Intelligent Power Management Integrated Circuit ().
- * It provides functions to interact with the  on register level. 
- * Enabling extensive configuration and features, such as periodic power switching Peripherals for value comparison.
+ * This file contains the implementation of the nPZero driver for controling and managing 
+ * the nPZero G1S power-saving IC.
+ * It provides functions to interact with the nPZero G1S IC on register level, 
+ * enabling extensive configuration and features, such as periodic power switching of peripherals for value comparison.
  *  
- * This driver is designed to work with the npz  from Nanopower Semiconductor. 
- * It uitilizes I2C communication protocol for interfacing with host MCU.
+ * This driver is designed to work with the nPZero G1S IC from Nanopower Semiconductor. 
+ * It utilizes the I2C communication protocol for interfacing with the host MCU.
  * 
  * @note This driver assumes proper initialization of the hardware abstraction layer for I2C is present in the npz_hal.c file.
  * 
@@ -31,16 +31,16 @@
  * Public Methods
  *****************************************************************************/
 
-npz_status_e npz_write_SLEEP_RST(uint8_t sleep_rst_value)
+npz_status_e npz_write_IDLE_RST(uint8_t idle_rst_value)
 {
-    uint8_t transmitData[] = {REG_SLEEP_RST, sleep_rst_value};
+    uint8_t transmitData[] = {REG_IDLE_RST, idle_rst_value};
 
     return npz_hal_write(NPZ_I2C_ADDRESS, transmitData, sizeof(transmitData), I2C_TRANSMISSION_TIMEOUT_MS);
 }
 
-npz_status_e npz_read_SLEEP_RST(uint8_t *sleep_rst_value)
+npz_status_e npz_read_IDLE_RST(uint8_t *idle_rst_value)
 {
-    return npz_hal_read(NPZ_I2C_ADDRESS, REG_SLEEP_RST, sleep_rst_value, 1, I2C_TRANSMISSION_TIMEOUT_MS);
+    return npz_hal_read(NPZ_I2C_ADDRESS, REG_IDLE_RST, idle_rst_value, 1, I2C_TRANSMISSION_TIMEOUT_MS);
 }
 
 npz_status_e npz_read_ID(uint8_t *id)

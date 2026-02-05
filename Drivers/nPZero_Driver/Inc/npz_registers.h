@@ -1,13 +1,13 @@
 /**
  * @file npz_registers.h
  *
- *  @brief Header file for the registers of the npz.
+ *  @brief Header file for the registers of the nPZero IC.
  */
 
 #ifndef __NPZ_REGISTERS_H
 #define __NPZ_REGISTERS_H
 
-#define REG_SLEEP_RST           0x00 /**< Sleep/Reset Register*/
+#define REG_IDLE_RST           0x00 /**< Idle/Reset Register*/
 #define REG_ID                  0x01 /**< Chip ID Register*/
 #define REG_STA1                0x02 /**< Status 1 Register*/
 #define REG_STA2                0x03 /**< Status 2 Register*/

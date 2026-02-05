@@ -1,9 +1,9 @@
 /**
  * @file npz_device_control.c
- * @brief Implementation of functions to read and handle status registers (STA1 and STA2), put npz
- * device in sleep mode, performe a software reset, and set a wake-up timeout.
+ * @brief Implementation of functions to read and handle status registers (STA1 and STA2), put the nPZero
+ * device in idle mode, perform a software reset, and set a wake-up timeout.
  *
- * The registers in STA1 and STA2 can be read to determine what was the cause of wake-up.
+ * The registers in STA1 and STA2 can be read to determine the wake-up cause.
  */
 
 /*****************************************************************************
@@ -45,14 +45,14 @@ static struct m_adc_core_code_level_map
     {0x2B, 2000}, {0x2C, 2100}, {0x2D, 2200}, {0x2E, 2300}, {0x2F, 2400}, {0x30, 2600},
     {0x31, 2800}, {0x32, 3000}, {0x33, 3200}, {0x34, 3400}};
 
-/** Struct that holds Internal ADC configuration including threshold values. */
+/** Struct that holds the Internal ADC configuration including threshold values. */
 typedef struct
 {
     npz_register_throva1_s throva1; /**< Struct Internal ADC (VBAT)Threshold Over Value. */
     npz_register_thruna1_s thruna1; /**< Struct Internal ADC (VBAT)Threshold Under Value. */
 } int_adc_channel_config_s;
 
-/** Struct that holds External ADC configuration including threshold values. */
+/** Struct that holds the External ADC configuration including threshold values. */
 typedef struct
 {
     npz_register_throva2_s throva2; /**< Struct External ADC (ADC_IN) Threshold Over Value. */
@@ -1091,39 +1091,39 @@ bool npz_device_read_peripheral_value(npz_psw_e psw_lp, int index, int * periphe
 }
 
 /**
- * @brief Put npz Device in Sleep mode.
+ * @brief Put the nPZero device in idle mode.
  */
-void npz_device_go_to_sleep(void)
+void npz_device_go_to_idle(void)
 {
-    printf("Enter sleep mode and disable I2C bus\r\n");
+    printf("Enter idle mode and disable I2C bus\r\n");
 
-    uint8_t sleep_rst_value = 0xFF;
-    if (npz_write_SLEEP_RST(sleep_rst_value) != OK)
+    uint8_t idle_rst_value = 0xFF;
+    if (npz_write_IDLE_RST(idle_rst_value) != OK)
     {
-        printf("Failed to write to SLEEP_RST register\r\n");
+        printf("Failed to write to IDLE_RST register\r\n");
     }
 }
 
 /**
- * @brief Reset npz Device by software.
+ * @brief Reset the nPZero device by software.
  */
 void npz_device_soft_reset(void)
 {
     printf("Software reset\r\n");
 
-    uint8_t sleep_rst_value = 0xA5;
-    if (npz_write_SLEEP_RST(sleep_rst_value) != OK)
+    uint8_t idle_rst_value = 0xA5;
+    if (npz_write_IDLE_RST(idle_rst_value) != OK)
     {
-        printf("Failed to write to SLEEP_RST register\r\n");
+        printf("Failed to write to IDLE_RST register\r\n");
     }
 }
 
 /**
- * @brief Setup npz device configuration.
+ * @brief Modify device configuration.
  */
 void npz_device_configure(npz_device_config_s * device_config)
 {
-    // Ensure the device_config not NULL
+    // Ensure the device_config is not NULL
     if (device_config == NULL)
     {
         printf("Invalid device configuration pointer\r\n");
