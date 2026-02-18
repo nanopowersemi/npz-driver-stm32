@@ -1,4 +1,3 @@
 [submodule "Drivers/nPZero_driver"]
 	path = Drivers/nPZero_driver
-	url = https://gitea.nano.power/NP0_G0_EVB/nPZero_driver.git
-	branch = main
+	url = https://github.com/nanopowersemi/npz-driver.git
