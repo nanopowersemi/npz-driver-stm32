@@ -351,7 +351,7 @@ int main(void)
     HAL_Delay(500);
 
     // At the end of your operations, put the device into sleep mode
-    npz_device_go_to_sleep();
+    npz_device_go_to_idle();
 
     /* USER CODE END 2 */
 
