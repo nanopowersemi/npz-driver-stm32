@@ -1,15 +1,14 @@
 /**
  * @file npz.h
  *
- * @brief Header file for npz Driver.
+ * @brief Header file for the nPZero Driver.
  *
- * This header file contains declarations and definitions for the  driver for controlling and managing
- * the Intelligent Power Management Integrated Circuit ().
- * It provides function prototypes, constants, enumerations and structures necessary for interacting with the  on
- * register level.
+ * This header file contains declarations and definitions for the driver for controlling and managing
+ * the nPZero power-saving IC.
+ * It provides function prototypes, constants, enumerations and structures necessary for interacting with the nPZero on a register level.
  *
- * This driver is designed to work with the npz  from Nanopower Semiconductor.
- * It uitilizes I2C communication protocol for interfacing with host MCU.
+ * This driver is designed to work with the nPZero G1S IC from Nanopower Semiconductor.
+ * It utilizes the I2C communication protocol for interfacing the host MCU.
  */
 
 #ifndef __NPZ_H
@@ -152,14 +151,14 @@ typedef enum
 {
     I2C_PULL_DISABLE = 0x00,   /**< I2C pull-ups disabled */
     I2C_PULL_ALWAYS_ON = 0x01, /**< I2C pull-ups always enabled */
-    I2C_PULL_AUTO = 0x03,      /**< I2C pull-ups disabled in sleep */
+    I2C_PULL_AUTO = 0x03,      /**< I2C pull-ups disabled in idle */
 } npz_i2c_pull_sel_e;
 
 /** Controls the SPI pin mode */
 typedef enum
 {
     SPI_PINS_ALWAYS_ON = 0x00,   /**< SPI pins always enabled */
-    SPI_PINS_AUTO_DISABLE = 0x01,     /**< SPI pins disabled in sleep (hi-Z) */
+    SPI_PINS_AUTO_DISABLE = 0x01,     /**< SPI pins disabled in idle (hi-Z) */
 } npz_spi_auto_e;
 
 /** Controls CLK_OUT DIV clock select */
@@ -227,12 +226,12 @@ typedef enum
 
 /* Structures */
 
-/**  Sleep register for shutting down Host MCU or reset Device. */
+/**  Idle/Reset register for shutting down the host MCU or resetting the nPZero device. */
 typedef struct
 {
-    uint8_t value; /**< When set to OxFF, the device will enter sleep mode, shutting down the host power and assuming
+    uint8_t value; /**< When set to OxFF, the device will enter idle mode, shutting down the host power and assuming
                     * control of the I2C bus. When set to 0xA5, the device will soft reset. */
-} npz_register_sleep_rst_s;
+} npz_register_idle_rst_s;
 
 /** (Read) ID register for Device ID. */
 typedef struct
@@ -240,7 +239,7 @@ typedef struct
     uint8_t id; /**< Device identification register. */
 } npz_register_id_s;
 
-/** (Read) Status register for reset reason and some wakeup trigger. */
+/** (Read) Status register for verifying the reset reason and selected wakeup triggers. */
 typedef struct
 {
     npz_resetsource_e reset_source : 3; /**< Indicates the reason for the device reset, see @npz_resetsource_e. */
@@ -253,19 +252,19 @@ typedef struct
                                            * global timeout before any wake up source was triggered. */
 } npz_register_sta1_s;
 
-/** (Read) Status register for which peripheral (if any) woke up the device. */
+/** (Read) Status register listing which peripheral (if any) woke up the device. */
 typedef struct
 {
-    uint8_t per1_triggered : 1;      /**< When flag is set to 1, indicates this peripheral 1 was triggered. */
+    uint8_t per1_triggered : 1;      /**< When flag is set to 1, indicates peripheral 1 was triggered. */
     uint8_t per1_global_timeout : 1; /**< When flag is set to 1, indicates the wake up reason was a global
                                       * time out before any wake up source was triggered. */
-    uint8_t per2_triggered : 1;      /**< When flag is set to 1, indicates this peripheral 2 was triggered. */
+    uint8_t per2_triggered : 1;      /**< When flag is set to 1, indicates peripheral 2 was triggered. */
     uint8_t per2_global_timeout : 1; /**< When flag is set to 1, indicates the wake up reason was a global
                                       * time out before any wake up source was triggered. */
-    uint8_t per3_triggered : 1;      /**< When flag is set to 1, indicates this peripheral 3 was triggered. */
+    uint8_t per3_triggered : 1;      /**< When flag is set to 1, indicates peripheral 3 was triggered. */
     uint8_t per3_global_timeout : 1; /**< When flag is set to 1, indicates the wake up reason was a global
                                       * time out before any wake up source was triggered. */
-    uint8_t per4_triggered : 1;      /**< When flag is set to 1, indicates this peripheral 4 was triggered. */
+    uint8_t per4_triggered : 1;      /**< When flag is set to 1, indicates peripheral 4 was triggered. */
     uint8_t per4_global_timeout : 1; /**< When flag is set to 1, indicates the wake up reason was a global
                                       * time out before any wake up source was triggered. */
 } npz_register_sta2_s;
@@ -325,7 +324,7 @@ typedef struct
     uint8_t io_str : 1;  /**< Controls the I/O pins’ output strength, (0: Normal strength; 1: High strength). */
     uint8_t i2c_pup_en : 1;  /**< Controls the internal I²C pull-up of ≈40KΩ. (0: Disabled; 1: Enabled). */
     uint8_t i2c_pup_auto : 1; /**< I²C internal pull-up auto control requires I2C_PUP_EN to be enabled.
-                                *(0: Pull-ups always on; 1: Pull-ups in sleep mode disabled). */
+                                *(0: Pull-ups always on; 1: Pull-ups in idle mode disabled). */
     uint8_t spi_auto : 1; /**< Controls the SPI outputs when the interface is not in use.
                             *(0: Always on; 1: Auto disable (HiZ)). */
     uint8_t xo_clkout_div : 3; /**< Enables the crystal oscillator and selects the division on CLK_OUT pin,
@@ -681,121 +680,121 @@ typedef struct
 /* Function Prototypes */
 
 /**
- * @brief Writes the sleep_rst struct to the sleep_rst register.
- * @brief When set to OxFF, the device will enter sleep mode, shutting down the host power and assuming control
+ * @brief Writes the idle_rst struct to the IDLE_RST register.
+ * @brief When set to OxFF, the device will enter idle mode, shutting down the host power and assuming control
  * of the I2C bus.
  * @brief When set to 0xA5, the device will soft reset.
  *
  *
- * @param [in] sleep_rst_value that holds value to be written.
+ * @param [in] idle_rst_value that holds the value to be written.
  * @return npz_status_e Status
  */
-npz_status_e npz_write_SLEEP_RST(uint8_t sleep_rst_value);
+npz_status_e npz_write_IDLE_RST(uint8_t idle_rst_value);
 
 /**
- * @brief Reads the sleep_rst register and stores it in npz_register_sleep_rst_s struct.
+ * @brief Reads the IDLE_RST register and stores it in the npz_register_idle_rst_s struct.
  *
  *
- * @param [out] sleep_rst_value Pointer to store the read sleep value.
+ * @param [out] idle_rst_value Pointer to store the read idle value.
  * @return npz_status_e Status
  */
-npz_status_e npz_read_SLEEP_RST(uint8_t *sleep_rst_value);
+npz_status_e npz_read_IDLE_RST(uint8_t *idle_rst_value);
 
 /**
- * @brief Reads the ID register and stores it in npz_register_id_s struct.
+ * @brief Reads the ID register and stores it in the npz_register_id_s struct.
  *
  *
- * @param [out] id Pointer to id where value will be stored.
+ * @param [out] id Pointer to id where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_ID(uint8_t *id);
 
 /**
- * @brief Reads the sta1 register and writes it to npz_register_sta1_s struct.
+ * @brief Reads the STA1 register and writes it to the npz_register_sta1_s struct.
  *
  *
- * @param [out] sta1 Pointer to status 1 register where value will be stored.
+ * @param [out] sta1 Pointer to the status 1 register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_STA1(npz_register_sta1_s *sta1);
 
 /**
- * @brief Reads the sta2 register and writes it to npz_register_sta2_s struct.
+ * @brief Reads the STA2 register and writes it to the npz_register_sta2_s struct.
  *
  *
- * @param [out] sta2 Pointer to status 2 register where value will be stored.
+ * @param [out] sta2 Pointer to the status 2 register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_STA2(npz_register_sta2_s *sta2);
 
 /**
- * @brief Writes the pswctl struct to the pswctl register.
+ * @brief Writes the pswctl struct to the PSWCTL register.
  *
  *
- * @param [in] pswctl Power switch control register that holds value to be written.
+ * @param [in] pswctl Power switch control register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_PSWCTL(const npz_register_pswctl_s pswctl);
 
 /**
- * @brief Reads the pswctl register and writes it to npz_register_pswctl_s struct.
+ * @brief Reads the PSWCTL register and writes it to the npz_register_pswctl_s struct.
  *
  *
- * @param [out] pswctl Pointer to power switch register where value will be stored.
+ * @param [out] pswctl Pointer to power switch register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_PSWCTL(npz_register_pswctl_s *pswctl);
 
 /**
- * @brief Writes the syscfg1 struct to the syscfg1 register.
+ * @brief Writes the syscfg1 struct to the SYSCFG1 register.
  *
  *
- * @param [in] syscfg1 System config 1 register that holds value to be written.
+ * @param [in] syscfg1 System config 1 register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_SYSCFG1(const npz_register_syscfg1_s syscfg1);
 
 /**
- * @brief Reads the syscfg1 register and writes it to npz_register_syscfg1_s struct.
+ * @brief Reads the SYSCFG1 register and writes it to npz_register_syscfg1_s struct.
  *
  *
- * @param [out] syscfg1 Pointer to system config 1 where value will be stored.
+ * @param [out] syscfg1 Pointer to system config 1 where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_SYSCFG1(npz_register_syscfg1_s *syscfg1);
 
 /**
- * @brief Writes the syscfg2 struct to the syscfg2 register.
+ * @brief Writes the syscfg2 struct to the SYSCFG2 register.
  *
  *
- * @param [in] syscfg2 System config 2 register that holds value to be written.
+ * @param [in] syscfg2 System config 2 register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_SYSCFG2(const npz_register_syscfg2_s syscfg2);
 
 /**
- * @brief Reads the syscfg2 register and writes it to npz_register_syscfg2_s struct.
+ * @brief Reads the SYSCFG2 register and writes it to npz_register_syscfg2_s struct.
  *
  *
- * @param [out] syscfg2 Pointer to System config 2 register where value will be stored..
+ * @param [out] syscfg2 Pointer to System config 2 register where the value will be stored..
  * @return npz_status_e Status
  */
 npz_status_e npz_read_SYSCFG2(npz_register_syscfg2_s *syscfg2);
 
 /**
- * @brief Writes the syscfg3 struct to the syscfg2 register.
+ * @brief Writes the syscfg3 struct to the SYSCFG3 register.
  *
  *
- * @param [in] syscfg3 System config 3 register that holds value to be written.
+ * @param [in] syscfg3 System config 3 register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_SYSCFG3(const npz_register_syscfg3_s syscfg3);
 
 /**
- * @brief Reads the syscfg3 register and writes it to npz_register_syscfg2_s struct.
+ * @brief Reads the syscfg3 register and writes it to the npz_register_syscfg3_s struct.
  *
  *
- * @param [out] syscfg3 Pointer to System config 3 register where value will be stored..
+ * @param [out] syscfg3 Pointer to System config 3 register where the value will be stored..
  * @return npz_status_e Status
  */
 npz_status_e npz_read_SYSCFG3(npz_register_syscfg3_s *syscfg3);
@@ -804,70 +803,70 @@ npz_status_e npz_read_SYSCFG3(npz_register_syscfg3_s *syscfg3);
  * @brief Writes the tout struct to the TOUT_L and TOUT_H registers.
  *
  *
- * @param [in] tout Global Timeout register that holds value to be written.
+ * @param [in] tout Global Timeout register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_TOUT(const npz_register_tout_s tout);
 
 /**
- * @brief Reads the tout register and writes it to npz_register_tout_s struct.
+ * @brief Reads the TOUT_L and TOUT_H registers and writes them to the npz_register_tout_s struct.
  *
  *
- * @param [out] tout Pointer to Global Timeout register where value will be stored.
+ * @param [out] tout Pointer to Global Timeout register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_TOUT(npz_register_tout_s *tout);
 
 /**
- * @brief Writes the intcfg struct to the intcfg register.
+ * @brief Writes the intcfg struct to the INTCFG register.
  *
  *
- * @param [in] intcfg Interrupt pin config register that holds value to be written.
+ * @param [in] intcfg Interrupt pin config register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_INTCFG(const npz_register_intcfg_s intcfg);
 
 /**
- * @brief Reads the intcfg register and writes it to npz_register_intcfg_s struct.
+ * @brief Reads the INTCFG register and writes it to the npz_register_intcfg_s struct.
  *
  *
- * @param [out] intcfg Pointer to Interrupt pin config register where value will be stored.
+ * @param [out] intcfg Pointer to Interrupt pin config register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_INTCFG(npz_register_intcfg_s *intcfg);
 
 /**
- * @brief Writes the throva1 struct to the throva1 register.
+ * @brief Writes the throva1 struct to the THROVA1 register.
  *
  *
- * @param [in] throva1 Threshold Over ADC 1 register that holds value to be written.
+ * @param [in] throva1 Threshold Over ADC 1 register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_THROVA1(const npz_register_throva1_s throva1);
 
 /**
- * @brief Reads the throva1 register and writes it to npz_register_throva1_s struct.
+ * @brief Reads the THROVA1 register and writes it to the npz_register_throva1_s struct.
  *
  *
- * @param [out] throva1 Pointer to Threshold Over ADC 1 register where value will be stored.
+ * @param [out] throva1 Pointer to Threshold Over ADC 1 register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_THROVA1(npz_register_throva1_s *throva1);
 
 /**
- * @brief Writes the throva2 struct to the throva2 register.
+ * @brief Writes the throva2 struct to the THROVA2 register.
  *
  *
- * @param [in] throva2 Threshold Over ADC 2 register that holds value to be written.
+ * @param [in] throva2 Threshold Over ADC 2 register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_THROVA2(const npz_register_throva2_s throva2);
 
 /**
- * @brief Reads the throva2 register and writes it to npz_register_throva2_s struct.
+ * @brief Reads the THROVA2 register and writes it to npz_register_throva2_s struct.
  *
  *
- * @param [out] throva2 Pointer to Thershold Over ADC 2 register where value will be stored.
+ * @param [out] throva2 Pointer to Thershold Over ADC 2 register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_THROVA2(npz_register_throva2_s *throva2);
@@ -876,17 +875,17 @@ npz_status_e npz_read_THROVA2(npz_register_throva2_s *throva2);
  * @brief Writes the thruna1 struct to the TRHUNA1 register.
  *
  *
- * @param [in] thruna1 Threshold Under ADC 1 register that holds value to be written.
+ * @param [in] thruna1 Threshold Under ADC 1 register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_THRUNA1(const npz_register_thruna1_s thruna1);
 
 /**
- * @brief Reads the thruna1 register and writes it to npz_register_thruna1_s struct.
+ * @brief Reads the THRUNA1 register and writes it to npz_register_thruna1_s struct.
  *
  *
  *
- * @param [out] thruna1 Pointer to Threshold Under ADC 1 register where value will be stored.
+ * @param [out] thruna1 Pointer to Threshold Under ADC 1 register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_THRUNA1(npz_register_thruna1_s *thruna1);
@@ -895,35 +894,35 @@ npz_status_e npz_read_THRUNA1(npz_register_thruna1_s *thruna1);
  * @brief Writes the thruna2 struct to the TRHUNA2 register.
  *
  *
- * @param [out] thruna2 Threshold Under ADC 2 register that holds value to be written.
+ * @param [out] thruna2 Threshold Under ADC 2 register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_THRUNA2(const npz_register_thruna2_s thruna2);
 
 /**
- * @brief Reads the thruna2 register and writes it to npz_register_thruna2_s struct.
+ * @brief Reads the THRUNA2 register and writes it to the npz_register_thruna2_s struct.
  *
  *
- * @param [out] thruna2 Pointer to Threshold Under ADC 2 register where value will be stored.
+ * @param [out] thruna2 Pointer to Threshold Under ADC 2 register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_THRUNA2(npz_register_thruna2_s *thruna2);
 
 /**
- * @brief Reads the last value from internal ADC channel (VBAT) and stores it in npz_register_adc_core_s struct.
+ * @brief Reads the last value from the internal ADC channel (VBAT) and stores it in the npz_register_adc_core_s struct.
  *
  *
- * @param [out] adc_core Pointer to ADC Core register where value will be stored.
+ * @param [out] adc_core Pointer to the ADC Core register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_ADC_CORE(npz_register_adc_core_s *adc_core);
 
 /**
- * @brief Reads the last value from external ADC channel (ADC_IN) and stores it in npz_register_adc_ext_s
+ * @brief Reads the last value from the external ADC channel (ADC_IN) and stores it in the npz_register_adc_ext_s
  * struct.
  *
  *
- * @param [out] adc_ext Pointer to ADC External register where value will be stored.
+ * @param [out] adc_ext Pointer to the ADC External register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_ADC_EXT(npz_register_adc_ext_s *adc_ext);
@@ -933,244 +932,244 @@ npz_status_e npz_read_ADC_EXT(npz_register_adc_ext_s *adc_ext);
  *
  *
  * @param [in] sram_reg Register address in SRAM to write to.
- * @param [in] sram SRAM register that holds value to be written.
+ * @param [in] sram SRAM register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_SRAM(const uint8_t sram_reg, const uint8_t sram);
 
 /**
- * @brief Reads one SRAM register and writes it to npz_register_sram_s struct.
+ * @brief Reads one SRAM register and writes it to the npz_register_sram_s struct.
  *
  *
  * @param [in] sram_reg Register address in SRAM to read a byte from.
- * @param [out] sram Pointer to SRAM register where value will be stored.
+ * @param [out] sram Pointer to the SRAM register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_SRAM(const uint8_t sram_reg, npz_register_sram_s *sram);
 
 /**
- * @brief Writes the cfgp struct to the cfgp register that is connected to the low power switch.
+ * @brief Writes the cfgp struct to the CFGP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
- * @param [in] cfgp Config Peripheral register that holds value to be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
+ * @param [in] cfgp Config Peripheral register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_CFGP(const npz_psw_e sw, const npz_register_cfgp_s cfgp);
 
 /**
- * @brief Reads the cfgp register that is connected to the low power switch and writes it to npz_register_cfgp_s
+ * @brief Reads the CFGP register that is connected to the low power switch and writes it to the npz_register_cfgp_s
  * struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] cfgp Pointer to Config Peripheral where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] cfgp Pointer to the Config Peripheral where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_CFGP(const npz_psw_e sw, npz_register_cfgp_s *cfgp);
 
 /**
- * @brief Writes the modp struct to the modp register that is connected to the low power switch.
+ * @brief Writes the modp struct to the MODP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
  * @param [in] modp Mode Peripheral register that holds value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_MODP(const npz_psw_e sw, const npz_register_modp_s modp);
 
 /**
- * @brief Reads the modp register that is connected to the low power switch and writes it to npz_register_modp_s
+ * @brief Reads the NODP register that is connected to the low power switch and writes it to the npz_register_modp_s
  * struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] modp Pointer to Mode Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] modp Pointer to Mode Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_MODP(const npz_psw_e sw, npz_register_modp_s *modp);
 
 /**
- * @brief Writes the perp struct to the perp register that is connected to the low power switch.
+ * @brief Writes the perp struct to the PERP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
  * @param [in] perp Polling Period register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_PERP(const npz_psw_e sw, const npz_register_perp_s perp);
 
 /**
- * @brief Reads the perp register that is connected to the low power switch and writes it to npz_register_perp_s
+ * @brief Reads the PERP register that is connected to the low power switch and writes it to npz_register_perp_s
  * struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] perp Pointer to Polling Period register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] perp Pointer to Polling Period register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_PERP(const npz_psw_e sw, npz_register_perp_s *perp);
 
 /**
- * @brief Writes the ncmdp struct to the ncmdp register that is connected to the low power switch.
+ * @brief Writes the ncmdp struct to the NCMDP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
  * @param [in] ncmdp Number Of Commands register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_NCMDP(const npz_psw_e sw, const npz_register_ncmdp_s ncmdp);
 
 /**
- * @brief Reads the ncmdp register that is connected to the low power switch and writes it to
+ * @brief Reads the NCMDP register that is connected to the low power switch and writes it to
  * npz_register_ncmdp_s struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] ncmdp Pointer to Number Of Commands register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] ncmdp Pointer to Number Of Commands register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_NCMDP(const npz_psw_e sw, npz_register_ncmdp_s *ncmdp);
 
 /**
- * @brief Writes the addrp struct to the addrp register that is connected to the low power switch.
+ * @brief Writes the addrp struct to the ADDRP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
  * @param [in] addrp Address Peripheral register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_ADDRP(const npz_psw_e sw, const npz_register_addrp_s addrp);
 
 /**
- * @brief Reads the addrp register that is connected to the low power switch and writes it to
+ * @brief Reads the ADDRP register that is connected to the low power switch and writes it to
  * npz_register_addrp_s struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] addrp Pointer to Address Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] addrp Pointer to Address Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_ADDRP(const npz_psw_e sw, npz_register_addrp_s *addrp);
 
 /**
- * @brief Writes the rregp struct to the rregp register that is connected to the low power switch.
+ * @brief Writes the rregp struct to the RREGP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw Low power switch indicates which peripheral will be written.
  * @param [in] rregp Read Register Peripheral register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_RREGP(const npz_psw_e sw, const npz_register_rregp_s rregp);
 
 /**
- * @brief Reads the rrep register that is connected to the low power switch and writes it to
+ * @brief Reads the RREGP register that is connected to the low power switch and writes it to the
  * npz_register_rregp_s struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] rregp Pointer to Read Register Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] rregp Pointer to Read Register Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_RREGP(const npz_psw_e sw, npz_register_rregp_s *rregp);
 
 /**
- * @brief Writes the throvp struct to the throvp register that is connected to the low power switch.
+ * @brief Writes the throvp struct to the THROVP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
  * @param [in] throvp Threshold Over Peripheral register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_THROVP(const npz_psw_e sw, const npz_register_throvp_s throvp);
 
 /**
- * @brief Reads the throvp register that is connected to the low power switch and writes it to
+ * @brief Reads the THROVP register that is connected to the low power switch and writes it to
  * npz_register_throvp_s struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] throvp Pointer to Threshold Over Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] throvp Pointer to Threshold Over Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_THROVP(const npz_psw_e sw, npz_register_throvp_s *throvp);
 
 /**
- * @brief Writes the thrunp struct to the thrunp register that is connected to the low power switch.
+ * @brief Writes the thrunp struct to the THRUNP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral that will be written.
  * @param [in] thrunp Threshold Under Peripheral register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_THRUNP(const npz_psw_e sw, const npz_register_thrunp_s thrunp);
 
 /**
- * @brief Reads the thrunp register that is connected to the low power switch and writes it to
+ * @brief Reads the THRUNP register that is connected to the low power switch and writes it to
  * npz_register_thrunp_s struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] thrunp Pointer to Threshold Under Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] thrunp Pointer to Threshold Under Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_THRUNP(const npz_psw_e sw, npz_register_thrunp_s *thrunp);
 
 /**
- * @brief Writes the twtp struct to the twtp register that is connected to the low power switch.
+ * @brief Writes the twtp struct to the TWTP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
  * @param [in] twtp Time To Wait Peripheral register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_TWTP(const npz_psw_e sw, const npz_register_twtp_s twtp);
 
 /**
- * @brief Reads the twtp register that is connected to the low power switch and writes it to npz_register_twtp_s
+ * @brief Reads the TWTP register that is connected to the low power switch and writes it to the npz_register_twtp_s
  * struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] twtp Pointer to Time To Wait Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] twtp Pointer to Time To Wait Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_TWTP(const npz_psw_e sw, npz_register_twtp_s *twtp);
 
 /**
- * @brief Writes the tcfgp struct to the tcfgp register that is connected to the low power switch.
+ * @brief Writes the tcfgp struct to the TCFGP register that is connected to the low power switch.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral that will be written.
+ * @param [in] sw The low power switch indicates which peripheral will be written.
  * @param [in] tcfgp Time To Wait Config Peripheral register that holds the value to be written.
  * @return npz_status_e Status
  */
 npz_status_e npz_write_TCFGP(const npz_psw_e sw, const npz_register_tcfgp_s tcfgp);
 
 /**
- * @brief Reads the tcfgp register that is connected to the low power switch and writes it to
+ * @brief Reads the TCFGP register that is connected to the low power switch and writes it to the
  * npz_register_tcfgp_s struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] tcfgp Pointer to Time To Wait Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] tcfgp Pointer to Time To Wait Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_TCFGP(const npz_psw_e sw, npz_register_tcfgp_s *tcfgp);
 
 /**
- * @brief Reads the valp register that is connected to the low power switch and writes it to npz_register_valp_s
+ * @brief Reads the VALP register that is connected to the low power switch and writes it to the npz_register_valp_s
  * struct.
  *
  *
- * @param [in] sw Low power switch indicates which peripheral will be read.
- * @param [out] valp Pointer to Value Peripheral register where value will be stored.
+ * @param [in] sw The low power switch indicates which peripheral will be read.
+ * @param [out] valp Pointer to Value Peripheral register where the value will be stored.
  * @return npz_status_e Status
  */
 npz_status_e npz_read_VALP(const npz_psw_e sw, npz_register_valp_s *valp);
 
 /**
- * @brief Generic function to read from a device register using I2C.
+ * @brief Generic function to read a device register over I2C.
  *
  * @param register_address The address of the register to read from.
  * @param buffer Pointer to the buffer where the read data will be stored.

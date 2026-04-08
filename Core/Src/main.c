@@ -106,7 +106,7 @@ npz_peripheral_config_s peripheral_4 = {
     .sensor_data_type  = DATA_TYPE_INT16,
     .multi_byte_transfer_enable  = MULTIBYTE_TRANSFER_ENABLE,
     .swap_registers = ENDIAN_BIG,
-    .polling_period = 0x012C, // Wakeup peripheral every 30 seconds with 10Hz clock
+    .polling_period = 100, // Wakeup peripheral every 10 seconds with 10Hz clock
     .i2c_cfg.sensor_address = 0x49,
     .i2c_cfg.command_num = 2,
     .i2c_cfg.bytes_from_sram = {0x01, 0x82, 0x02, 0xA0},
@@ -255,26 +255,6 @@ static void npz_read_status_registers(npz_status_s *status)
     }
 }
 
-/**@brief Function for detecting the nPZero on the I2C bus
- */
-uint8_t npz_search(void)
-{
-    uint8_t sample_data;
-
-    npz_hal_read(NPZ_I2C_ADDRESS, REG_ID, &sample_data, 1, 5);
-
-    if ((sample_data) == 0x60)
-    {
-    	printf("[--- nPZero Init OK ---]\r\n");
-    	return 1;
-    }
-    else
-    {
-    	printf("[--- nPZero Init Not OK 0x%x---]\r\n", sample_data);
-    	return 0;
-    }
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -322,8 +302,6 @@ int main(void)
 
     npz_read_status_registers(&npz_status);
 
-    //npz_search();
-
     // Send the configuration to the device
     npz_device_configure(&npz_configuration);
 
@@ -335,7 +313,7 @@ int main(void)
     //HAL_Delay(500);
 
     // At the end of your operations, put the device into sleep mode
-    npz_device_go_to_sleep();
+    npz_device_go_to_idle();
 
     /* USER CODE END 2 */
 

@@ -26,7 +26,7 @@
 
 #include "stm32l0xx_hal.h"
 #include <stdio.h>
-#include "../Inc/npz_hal.h"
+#include "../../Drivers/nPZero_driver/Inc/npz_hal.h"
 
 /*****************************************************************************
  * Defines
@@ -54,18 +54,6 @@ static I2C_HandleTypeDef m_hi2c1;
 npz_status_e npz_hal_read(uint8_t slave_address, uint8_t slave_register, uint8_t *pData, uint16_t size, uint32_t timeout)
 {
 	uint8_t transmitData[] = { slave_register};
-
-//	if (HAL_I2C_Master_Transmit(&m_hi2c1, slave_address, transmitData, sizeof(transmitData), timeout) != HAL_OK)
-//	{
-//		return ERR;
-//	}
-//
-//	HAL_Delay(I2C_DELAY_MS);
-//
-//	if (HAL_I2C_Master_Receive(&m_hi2c1, slave_address, pData, size, timeout) != HAL_OK)
-//	{
-//		return ERR;
-//	}
 
 	HAL_I2C_Mem_Read(&m_hi2c1, slave_address, transmitData[0], 1, pData, size, timeout);
 

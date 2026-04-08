@@ -1,7 +1,7 @@
 /**
  * @file npz_logs.c
- * @brief This file contains functions for reading and logging configurations of the npz device, including global
- * settings, peripheral configurations, and ADC. The logging functions are designed to ensure that all configurations
+ * @brief This file contains functions for reading and logging configurations of the nPZero device, including global
+ * settings, peripheral configurations, and ADC setup. The logging functions are designed to ensure that all configurations
  * are read correctly and presented in a standardized format for easier debugging and verification.
  */
 
@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include "main.h"
 #include "../Inc/npz_logs.h"
 #include "../Inc/npz_registers.h"
 
@@ -37,7 +36,7 @@ typedef struct
 
 
 static const register_info_t global_register_info[] = {
-    {REG_SLEEP_RST, "SLEEP_RST"}, {REG_ID, "ID"},           {REG_PSWCTL, "PSWCTL"},
+    {REG_IDLE_RST, "IDLE_RST"}, {REG_ID, "ID"},           {REG_PSWCTL, "PSWCTL"},
 	{REG_SYSCFG1, "SYSCFG1"},     {REG_SYSCFG2, "SYSCFG2"},     {REG_SYSCFG3, "SYSCFG3"},
     {REG_TOUT_L, "TOUT_L"},     {REG_TOUT_H, "TOUT_H"},       {REG_INTCFG, "INTCFG"}
 };
