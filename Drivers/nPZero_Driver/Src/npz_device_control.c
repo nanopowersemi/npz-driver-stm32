@@ -152,18 +152,12 @@ static bool set_power_switch_control(npz_device_config_s * device_config)
             return false;
     }
 
-    if (device_config->power_switch_gate_boost > 1)
-    {
-        printf("Invalid gate boost value for power switches\r\n");
-        return false;
-    }
 
     pswctl.pswint_p1 = device_config->power_switch_normal_mode_per1; // Peripheral 1
     pswctl.pswint_p2 = device_config->power_switch_normal_mode_per2; // Peripheral 2
     pswctl.pswint_p3 = device_config->power_switch_normal_mode_per3; // Peripheral 3
     pswctl.pswint_p4 = device_config->power_switch_normal_mode_per4; // Peripheral 4
     pswctl.pswh_mode = device_config->host_power_mode;
-    pswctl.psw_en_vn = device_config->power_switch_gate_boost;
     if (npz_write_PSWCTL(pswctl) != OK)
     {
         printf("Failed to write power control register\r\n");
@@ -999,11 +993,6 @@ bool npz_device_handle_adc_external(void)
             printf("Failed to read ADC_EXT register\r\n");
             return false;
         }
-
-        if (get_adc_ext_val.adc_ext == 0x1F)
-        {
-            printf("ADC_IN analog pin not connected. Please connect the pin.\r\n");
-        }
         else
         {
             printf("External ADC channel (connected to ADC_IN) was triggered\r\n");
@@ -1164,5 +1153,76 @@ void npz_device_configure(npz_device_config_s * device_config)
             printf("Failed to configure external ADC\r\n");
             return;
         }
+    }
+}
+
+static void __G1S_ERRATA_WORKAROUND_11(void)
+{
+	uint8_t rd_data[4];
+    uint32_t _check_;
+    uint8_t _6A_, _65_;
+
+	uint8_t transmitData[2] = {0x6F, 0x60};
+	
+    npz_hal_write(NPZ_I2C_ADDRESS, transmitData, sizeof(transmitData), 5);
+
+    npz_hal_read(NPZ_I2C_ADDRESS, 0x6A, &_6A_, 1, 5);
+
+    if (_6A_ == 0x18) {
+
+		npz_hal_read(NPZ_I2C_ADDRESS, 0x65, &_65_, 1, 5);
+
+		npz_hal_read(NPZ_I2C_ADDRESS, 0x76, &rd_data[0], sizeof(rd_data), 5);
+
+        _check_ = ((uint32_t)rd_data[3] << 24 | (uint32_t)rd_data[2] << 16 | (uint32_t)rd_data[1] << 8 | (uint32_t)rd_data[0]);
+
+    	if ((_check_ < 0x69F54F00) || (_65_ < 0x1A)) {
+            transmitData[0] = 0x65;
+	        transmitData[1] = 0x18;
+            npz_hal_write(NPZ_I2C_ADDRESS, transmitData, sizeof(transmitData), 5);
+        } else {
+            transmitData[0] = 0x65;
+	        transmitData[1] = 0x19;
+            npz_hal_write(NPZ_I2C_ADDRESS, transmitData, sizeof(transmitData), 5);            
+        }
+        transmitData[0] = 0x67;
+	    transmitData[1] = 0x00;
+        npz_hal_write(NPZ_I2C_ADDRESS, transmitData, sizeof(transmitData), 5);        
+    }
+
+    transmitData[0] = 0x6F;
+    transmitData[1] = 0x00;
+    npz_hal_write(NPZ_I2C_ADDRESS, transmitData, sizeof(transmitData), 5);
+}
+
+/**
+ * @brief Function for detecting the nPZero on the I2C bus
+ *
+ * @param [out] int return 0->OK, 1->NOK.
+ */
+int npz_init(void)
+{
+    uint8_t rd_data[4];
+
+    printf("[--- nPZG1S INIT  ");
+
+    npz_hal_init();
+
+    npz_hal_read(NPZ_I2C_ADDRESS, 0x01, &rd_data[0], 3, 5);
+
+    if ((rd_data[2] == 0x00) && (rd_data[1] & 0xE0) == 0)
+    {
+    	__G1S_ERRATA_WORKAROUND_11();
+    }
+
+    if ((rd_data[0]) == 0x60)
+    {
+    	printf("..... OK ---]\r\n");
+    	return 0;
+    }
+    else
+    {
+    	printf("... NOK 0x%x---]\r\n", rd_data[0]);
+    	return 1;
     }
 }
