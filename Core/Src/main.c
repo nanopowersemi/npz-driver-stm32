@@ -120,7 +120,7 @@ npz_peripheral_config_s peripheral_4 = {
                            */
     .pre_wait_time = POST_WAIT_TIME_EXTEND_256,
     .post_wait_time = POST_WAIT_TIME_EXTEND_256,
-    .threshold_over = 3200,
+    .threshold_over = 3600,
     .threshold_under = 1280,
 };
 
@@ -191,19 +191,24 @@ static void npz_read_status_registers(npz_status_s *status)
     // Handle status1
     if (status->status1.reset_source == RESETSOURCE_NONE)
     {
-        printf("Reset source is None\r\n");
+        //printf("Reset source is None\r\n");
     }
     else if (status->status1.reset_source == RESETSOURCE_PWR_RESET)
     {
-        printf("Power-on reset triggered\r\n");
+        //printf("Power-on reset triggered\r\n");
+
     }
     else if (status->status1.reset_source == RESETSOURCE_SOFT_RESET)
     {
-        printf("Soft reset triggered (via I2C command)\r\n");
+        //printf("Soft reset triggered (via I2C command)\r\n");
     }
     else if (status->status1.reset_source == RESETSOURCE_EXT_RESET)
     {
-        printf("External reset triggered (via RST pin)\r\n");
+        //printf("External reset triggered (via RST pin)\r\n");
+    }
+    else
+    {
+    	//
     }
 
     if (status->status1.ext_adc_triggered == 1)
@@ -271,26 +276,6 @@ static void npz_read_status_registers(npz_status_s *status)
     }
 }
 
-/**@brief Function for detecting the nPZero on the I2C bus
- */
-uint8_t npz_search(void)
-{
-    uint8_t sample_data;
-
-    npz_hal_read(NPZ_I2C_ADDRESS, REG_ID, &sample_data, 1, 5);
-
-    if ((sample_data) == 0x60)
-    {
-    	printf("[--- nPZero Init OK ---]\r\n");
-    	return 1;
-    }
-    else
-    {
-    	printf("[--- nPZero Init Not OK 0x%x---]\r\n", sample_data);
-    	return 0;
-    }
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -328,17 +313,15 @@ int main(void)
     // Print welcome message
     printf("\nnPZero Host is active ......\r\n");
 
-    // Initialize the npz interface
-    npz_hal_init();
+    HAL_Delay(300);
 
-    HAL_Delay(1000);
+    // Initialize the npz interface
+    npz_init();
 
     // Read the status registers of the npz device after every reset
     npz_status_s npz_status = { 0 };
 
     npz_read_status_registers(&npz_status);
-
-    npz_search();
 
     // Send the configuration to the device
     npz_device_configure(&npz_configuration);
